@@ -95,7 +95,7 @@ Version: {version}-1
 Section: devel
 Priority: optional
 Architecture: {deb_arch}
-Maintainer: Antigravity Community Maintainers <https://github.com/mozi1924/build-agy>
+Maintainer: Antigravity Community Maintainers
 Installed-Size: {installed_size}
 Depends: {', '.join(depends)}
 Provides: {', '.join(provides)}
@@ -197,7 +197,7 @@ fi
 {files_section}
 
 %changelog
-* Wed Sep 30 2026 Antigravity Maintainers <https://github.com/mozi1924/build-agy> - {version}-1
+* Wed Sep 30 2026 Antigravity Maintainers - {version}-1
 {changelog_entry}
 """
     spec_file = rpmbuild_root / "SPECS" / f"{pkg_name}.spec"

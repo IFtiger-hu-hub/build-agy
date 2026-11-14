@@ -2,7 +2,7 @@
 
 > Automated packaging pipeline and community repository (APT & RPM) for Google Antigravity components on Linux: **Antigravity IDE**, **Antigravity 2.0 (Hub)**, and **Antigravity CLI**.
 
-[![Build & Deploy](https://github.com/mozi1924/build-agy/actions/workflows/build-repo.yml/badge.svg)](https://github.com/mozi1924/build-agy/actions/workflows/build-repo.yml)
+[![Build & Deploy](https://github.com/IFtiger-hu-hub/build-agy/actions/workflows/build-repo.yml/badge.svg)](https://github.com/IFtiger-hu-hub/build-agy/actions/workflows/build-repo.yml)
 
 Since Google Antigravity 2.0, official distribution on Linux was reduced to standalone `.tar.gz` archives. This repository bridges that gap by continuously monitoring Google's official release endpoints, packaging native `.deb` and `.rpm` binaries, and serving them via GitHub Pages as an active APT & YUM/DNF repository.
 
@@ -29,7 +29,7 @@ Since Google Antigravity 2.0, official distribution on Linux was reduced to stan
 
 ```bash
 # 1. Add repository source list
-echo "deb [trusted=yes] https://github.com/mozi1924/build-agy/releases/latest/download/ ./" | sudo tee /etc/apt/sources.list.d/antigravity.list
+echo "deb [trusted=yes] https://github.com/IFtiger-hu-hub/build-agy/releases/latest/download/ ./" | sudo tee /etc/apt/sources.list.d/antigravity.list
 
 # 2. Update package list and install
 sudo apt update
@@ -43,7 +43,7 @@ sudo apt install -y antigravity-ide antigravity antigravity-cli
 sudo tee /etc/yum.repos.d/antigravity.repo << 'EOF'
 [antigravity]
 name=Antigravity RPM Repository
-baseurl=https://mozi1924.github.io/build-agy/rpm/$basearch/
+baseurl=https://IFtiger-hu-hub.github.io/build-agy/rpm/$basearch/
 enabled=1
 gpgcheck=0
 EOF
@@ -55,7 +55,10 @@ sudo dnf install -y antigravity-ide antigravity antigravity-cli
 ### openSUSE (Zypper)
 
 ```bash
-sudo zypper addrepo --no-gpgcheck https://mozi1924.github.io/build-agy/rpm/\$basearch/ antigravity
+# 1. Add repository with auto-refresh
+sudo zypper addrepo -f --no-gpgcheck https://IFtiger-hu-hub.github.io/build-agy/rpm/\$basearch/ antigravity
+
+# 2. Refresh and install packages
 sudo zypper refresh
 sudo zypper install -y antigravity-ide antigravity antigravity-cli
 ```

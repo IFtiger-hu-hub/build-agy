@@ -20,7 +20,12 @@ PUBLIC_DIR = BASE_DIR / "public"
 METADATA_FILE = BASE_DIR / "metadata.json"
 
 def get_repo_info():
-    default_user = "mozi1924"
+    if os.environ.get("GITHUB_REPOSITORY"):
+        parts = os.environ["GITHUB_REPOSITORY"].split("/", 1)
+        if len(parts) == 2:
+            return parts[0], parts[1]
+
+    default_user = "IFtiger-hu-hub"
     default_repo = "build-agy"
     try:
         res = subprocess.run("git remote get-url origin", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
