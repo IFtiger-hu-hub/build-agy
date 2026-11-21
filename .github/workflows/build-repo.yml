@@ -21,6 +21,7 @@ permissions:
   contents: write
   pages: write
   id-token: write
+  actions: read
 
 concurrency:
   group: "pages"
@@ -36,10 +37,10 @@ jobs:
       rebuild_pages_only: ${{ steps.condition.outputs.rebuild_pages_only }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.11'
 
@@ -52,7 +53,7 @@ jobs:
             echo "should_build=false" >> $GITHUB_OUTPUT
             echo "components_json=[\"none\"]" >> $GITHUB_OUTPUT
             echo "to_build=" >> $GITHUB_OUTPUT
-            python3 scripts/fetch_metadata.py || true
+            GITHUB_OUTPUT="" python3 scripts/fetch_metadata.py || true
           else
             echo "rebuild_pages_only=false" >> $GITHUB_OUTPUT
             EXTRA_ARGS=""
@@ -63,7 +64,7 @@ jobs:
           fi
 
       - name: Upload Metadata Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: metadata
           path: metadata.json
@@ -79,15 +80,15 @@ jobs:
         arch: [x86_64, aarch64]
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.11'
 
       - name: Download Metadata Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: metadata
 
@@ -102,7 +103,7 @@ jobs:
           python3 scripts/build_packages.py -c "${{ matrix.component }}" -a "${{ matrix.arch }}"
 
       - name: Upload Built Packages
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pkg-${{ matrix.component }}-${{ matrix.arch }}
           path: |
@@ -115,17 +116,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.11'
 
       - name: Download Metadata Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: metadata
 
@@ -151,7 +152,7 @@ jobs:
 
       - name: Download Built Packages (Build mode)
         if: needs.check-versions.outputs.rebuild_pages_only != 'true'
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           pattern: pkg-*
           path: artifacts
@@ -208,13 +209,35 @@ jobs:
           python3 scripts/generate_web.py --tag "${{ steps.release_info.outputs.tag }}"
 
       - name: Setup GitHub Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       - name: Upload GitHub Pages Artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: 'public'
 
+  deploy-pages:
+    needs: deploy-repo
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Wait for github-pages Artifact Indexing
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          for i in $(seq 1 15); do
+            COUNT=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts?per_page=100" --jq '[.artifacts[] | select(.name == "github-pages" and .expired == false)] | length')
+            echo "Attempt ${i}/15: found ${COUNT} github-pages artifact(s)"
+            if [ "${COUNT:-0}" -ge 1 ]; then
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "Timed out waiting for github-pages artifact to appear in API"
+          exit 1
+
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
