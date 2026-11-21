@@ -218,6 +218,7 @@ jobs:
 
   deploy-pages:
     needs: deploy-repo
+    if: ${{ !cancelled() && needs.deploy-repo.result == 'success' }}
     runs-on: ubuntu-latest
     environment:
       name: github-pages
